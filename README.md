@@ -59,7 +59,7 @@ So, to add a new provider, do the following steps
 - Drop the new dll in the executing assembly of the application
 
 
-#How the application determines templated and how to add a new one
+#How the application determines templates and how to add a new one
 
 When the application is executed, it will attempt to load the assembly defined in the 'templateassembly' command line argument dynamically.  It will then search through all classes that implement the PocoMachen.Integration.ITemplateEngine interface.  It will use a method named 'GetTemplateName' to try and match to the 'templatename' command line argument.  It will reference the first occurence and pass the data from the database provider to the template engine.
 

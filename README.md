@@ -14,7 +14,7 @@ Features with the initial release
 - SQL CE database support
 - C# POCO Model template
 
-How to use the application ...
+#How to use the application ...
 
 PocoMachen is completely commandline driven and therefore commandline arguments are dependent on the database provider and output template you are using.  The following example gives a sample command line to read from a SQL CE database and write C# code files
 
@@ -46,7 +46,7 @@ outputassemblyname - the name of the DLL that is created
 ```
 
 
-How the application determines database providers and how to add a new one
+#How the application determines database providers and how to add a new one
 
 When the application is executed, it searches the executing assembly for files that end with 'PocoMachenProvider.dll' (for example, SqlConnectionCe.PocoMachenProvider.dll).  These assemblies are loaded dynamically and all classes that implement the PocoMachen.Integration.IProviderBinder interface are examined.  There is a method on the interface named 'GetProviderName'.  If the application can match the provider given in the command line to the value returned from this method, the found provider is used.  These searches are not case sensitive.
 
@@ -59,7 +59,7 @@ So, to add a new provider, do the following steps
 - Drop the new dll in the executing assembly of the application
 
 
-How the application determines templated and how to add a new one
+#How the application determines templated and how to add a new one
 
 When the application is executed, it will attempt to load the assembly defined in the 'templateassembly' command line argument dynamically.  It will then search through all classes that implement the PocoMachen.Integration.ITemplateEngine interface.  It will use a method named 'GetTemplateName' to try and match to the 'templatename' command line argument.  It will reference the first occurence and pass the data from the database provider to the template engine.
 

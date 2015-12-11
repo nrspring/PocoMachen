@@ -10,9 +10,16 @@ Features include
 - Pluggable extension architecture to easily add new database types and output templates
 - Completely command line driven - it can be added to a build process
 
-Features with the initial release
+#December 11, 2015 Release
+- Added the ability to handle nullable field types
+- Added "SimpleSql" functionality
+
+#Features with the initial release
 - SQL CE database support
 - C# POCO Model template
+
+
+
 
 #How to use the application ...
 
@@ -69,3 +76,73 @@ So, to add a new template, do the following steps
 - Create a new dll (the name is not critical) - an exisiting dll can also be used
 - Reference PocoMachen.Integration.dll in the new project
 - Create at least one class that implements the PocoMachen.Integration.ITemplateEngine interface
+
+
+#Simple Sql
+Simple sql is a template for PocoMachen that can build sql statements with a fluent style.  Since it returns a string with the sql statement everything from ADO to ORMs can be used.  It is useful for querying from tables that do not have any joins (Select * from RunLog).
+
+Use the following PocoMachen commandline to generate the PocoMachen SimpleSql files
+```
+PocoMachen.exe provider:=sqlconnectionce templateassembly:=SimpleSql.Template.dll templatename:=simplesql connectionstring:="Data Source=SomeSampleSqlCeDatabase.sdf;Persist Security Info=False" outputpath:=c:\temp  namespace:=sample.test.simplesql outputassemblyname:=sample.test.simplesql.dll
+
+Note that you will need the 'SimpleSql.Template.dll' file either in the executing path of PocoMachen or you will need to provide a path.
+Note also that the output type has to be code and cannot be assembly (see below for why)
+```
+
+The generated classes will look something like below.  Initially this will not compile since the classes that make up the table objects are not referenced.  This can be corrected by referencing the PocoMachen.SimpleSql.Extensions DLL and choosing the namespace for the specific database (this keeps the generated code generic with database specific code in the framework - this is why simplesql cannot be compiled in to an assembly at generation time).  The using statement in the code below references the Sql CE implementation.
+
+```C#
+using PocoMachen.SimpleSql.Extensions.SqlCe.FieldTypes;
+
+namespace PocoMachen.Test.SimpleSql
+{
+    public class aaaTestTable : BaseTable
+    {
+        public aaaTestTable()
+        {
+            Select = "*";
+            From = "aaaTestTable";
+            Id = new IntField(this, "Id");
+            TestString = new StringField(this, "TestString");
+            TestDate = new DateField(this, "TestDate");
+            TestDateNull = new DateFieldNullable(this, "TestDateNull");
+            TestInt = new IntField(this, "TestInt");
+            TestIntNull = new IntFieldNullable(this, "TestIntNull");
+            TestFloat = new DoubleField(this, "TestFloat");
+            TestFloatNull = new DoubleFieldNullable(this, "TestFloatNull");
+        }
+        public IntField Id { get; set; }
+        public StringField TestString { get; set; }
+        public DateField TestDate { get; set; }
+        public DateFieldNullable TestDateNull { get; set; }
+        public IntField TestInt { get; set; }
+        public IntFieldNullable TestIntNull { get; set; }
+        public DoubleField TestFloat { get; set; }
+        public DoubleFieldNullable TestFloatNull { get; set; }
+    }
+
+}
+```
+
+Reference the DLL that was just created as well as the PocoMachen.SimpleSql.Extensions DLL.  Below is a sample that creates a sql statement and executes it using Dapper.
+```C#
+//Below is a standard ADO Connection
+using (	var conn =	new System.Data.SqlServerCe.SqlCeConnection( @"Data Source=SomeSampleSqlCeDatabase.sdf;Persist Security Info=False"))
+{
+	conn.Open();
+
+	//Create the sql builder - note that name of the object will match the name of the Poco object for that table
+	var sql = new sample.test.simplesql.RunLog();
+	
+	//Show me all of the rows where the maximum possible date is 5/16/2010 and the number of miles is in between 5 and 10
+	sql.EventDate.MaxDate(new DateTime(2010, 5, 16, 23,59,59));
+	sql.EventMiles.GreaterThanOrEqualTo(5).LessThanOrEqualTo(10);
+	
+	//Order these rows descending, skip 50 rows and return me 10.  Note that skiptake can only be used when orderby is set.  This line could be moved to the end of the EventDate code above
+	sql.EventDate.OrderByDescending().SkipTake(50,10);
+
+	//Use Dapper to query the results.  Note that this will return a collection of PocoMachen Poco classes for the given table.  The sql.Sql() code will return a string with the created sql statement.
+	var items = conn.Query<Models.RunLog>(sql.Sql());
+}
+```
+

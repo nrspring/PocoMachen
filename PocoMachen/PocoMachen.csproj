@@ -62,6 +62,10 @@
       <Project>{4a87bd47-96d5-415d-a84b-e3faebfe84a4}</Project>
       <Name>PocoMachen.Integration</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SimpleSql.Template\SimpleSql.Template.csproj">
+      <Project>{4a0a55f6-7dae-47eb-83de-68f90d3d6ced}</Project>
+      <Name>SimpleSql.Template</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SqlConnectionCe.PocoMachenProvider\SqlConnectionCe.PocoMachenProvider.csproj">
       <Project>{123ee86d-45a2-40fe-880a-111e6ccd1ca5}</Project>
       <Name>SqlConnectionCe.PocoMachenProvider</Name>
